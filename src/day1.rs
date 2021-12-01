@@ -5,27 +5,14 @@ pub fn part1(input: &str) -> i32 {
     input
         .lines()
         .map(|l| l.parse::<i32>().unwrap())
-        .fold((-1, -1), |t, x| {
-            let (acc, pre) = t;
-            if x > pre {
-                (acc + 1, x)
-            } else {
-                (acc, x)
-            }
-        })
+        .fold((-1, -1), |(acc, pre), x| (acc + (pre < x) as i32, x))
         .0
 }
 
 #[aoc(day1, part2)]
-pub fn part2(input: &str) -> i32 {
+pub fn part2(input: &str) -> usize {
     let v: Vec<i32> = input.lines().map(|l| l.parse::<i32>().unwrap()).collect();
-    let mut r = 0;
-    for i in 1..v.len() - 2 {
-        if v[i - 1] < v[i + 2] {
-            r += 1;
-        }
-    }
-    r
+    v.iter().zip(v[3..].iter()).filter(|x| x.0 < x.1).count()
 }
 
 #[cfg(test)]

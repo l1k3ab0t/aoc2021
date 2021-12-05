@@ -2,45 +2,37 @@ use aoc_runner_derive::{aoc, aoc_generator};
 
 pub struct Bingo {
     boards: Vec<Board>,
-    instructions: Vec<i32>,
+    instructions: Vec<u32>,
 }
 
-pub struct Board(Vec<Vec<(i32, bool)>>);
+pub struct Board(Vec<Vec<(u32, bool)>>);
 
 impl Board {
-    fn score(&self) -> i32 {
+    fn score(&self) -> u32 {
         self.0
             .iter()
             .flatten()
-            .fold(0, |acc, (i, m)| if !*m { acc + *i } else { acc })
+            .fold(0, |acc, (i, m)| acc + *i * (!*m as u32))
     }
 
-    fn mark(&self, x: i32) -> Self {
+    fn mark(&self, x: u32) -> Self {
         Board(
             self.0
                 .iter()
-                .map(|l| {
-                    l.iter()
-                        .map(|(i, m)| if *i == x { (*i, true) } else { (*i, *m) })
-                        .collect()
-                })
+                .map(|l| l.iter().map(|(i, m)| (*i, *m || *i == x)).collect())
                 .collect(),
         )
     }
 
     fn won(&self) -> bool {
-        let mut v = vec![0, 0, 0, 0, 0];
+        let mut v = vec![true, true, true, true, true];
         for l in self.0.iter() {
-            if l.iter().fold(0, |acc2, (_, m)| acc2 + (*m as i32)) == 5 {
+            if l.iter().all(|(_, m)| *m) {
                 return true;
             }
-            v = l
-                .iter()
-                .enumerate()
-                .map(|(i, (_, m))| v[i] + (*m as i32))
-                .collect();
+            v = l.iter().enumerate().map(|(i, (_, m))| v[i] & *m).collect();
         }
-        v.contains(&5)
+        v.contains(&true)
     }
 }
 
@@ -52,25 +44,21 @@ impl Clone for Board {
 
 #[aoc_generator(day4)]
 pub fn generator(input: &str) -> Bingo {
-    let mut lines = input.lines();
-    let instructions = &lines
+    let mut lines = input.split("\n\n");
+    let instructions = lines
         .next()
         .unwrap()
         .split(",")
-        .map(|s| s.parse::<i32>().unwrap())
-        .collect::<Vec<i32>>()
-        .clone();
-    let bingo = lines.filter(|l| l.len() > 3).collect::<Vec<&str>>()[0..]
-        .chunks(5)
-        .into_iter()
+        .map(|s| s.parse::<u32>().unwrap())
+        .collect::<Vec<u32>>();
+    let bingo = lines
         .map(|c| {
             Board(
-                c.to_owned()
-                    .iter()
+                c.split("\n")
                     .map(|l| {
-                        l.split_ascii_whitespace()
-                            .map(|c| (c.parse::<i32>().unwrap(), false))
-                            .collect::<Vec<(i32, bool)>>()
+                        l.split_whitespace()
+                            .map(|c| (c.parse::<u32>().unwrap(), false))
+                            .collect::<Vec<(u32, bool)>>()
                     })
                     .collect::<Vec<_>>(),
             )
@@ -84,7 +72,7 @@ pub fn generator(input: &str) -> Bingo {
 }
 
 #[aoc(day4, part1)]
-pub fn part1(input: &Bingo) -> i32 {
+pub fn part1(input: &Bingo) -> u32 {
     let mut boards = input.boards.to_vec();
     for x in input.instructions.iter() {
         let mut bs: Vec<Board> = vec![];
@@ -97,21 +85,21 @@ pub fn part1(input: &Bingo) -> i32 {
         }
         boards = bs.clone();
     }
-    0
+    unreachable!()
 }
 
 #[aoc(day4, part2)]
-pub fn part2(input: &Bingo) -> i32 {
+pub fn part2(input: &Bingo) -> u32 {
     let mut boards = input.boards.to_vec();
     for x in input.instructions.iter() {
         let mut bs: Vec<Board> = vec![];
         let mut last_score = 0;
         for board in boards.iter() {
             let marked = board.mark(*x);
-            if !marked.won() {
-                bs.push(marked)
-            } else {
+            if marked.won() {
                 last_score = marked.score() * x
+            } else {
+                bs.push(marked)
             }
         }
         boards = bs.clone();
@@ -119,7 +107,7 @@ pub fn part2(input: &Bingo) -> i32 {
             return last_score;
         }
     }
-    0
+    unreachable!()
 }
 
 #[cfg(test)]

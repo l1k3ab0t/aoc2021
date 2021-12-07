@@ -48,10 +48,10 @@ pub fn part2(input: &Vec<Vent>) -> usize {
         let start_y = cmp::min(vent[1], vent[3]);
         let end_x = cmp::max(vent[0], vent[2]);
         let end_y = cmp::max(vent[1], vent[3]);
-        if vent[0] == vent[2] {
-            (start_x..=end_x).for_each(|y| *m.entry((vent[0], y)).or_insert(0) += 1);
-        } else if vent[1] == vent[3] {
-            (start_y..=end_y).for_each(|x| *m.entry((x, vent[1])).or_insert(0) += 1);
+        if vent[1] == vent[3] {
+            (start_x..=end_x).for_each(|y| *m.entry((vent[1], y)).or_insert(0) += 1);
+        } else if vent[0] == vent[2] {
+            (start_y..=end_y).for_each(|x| *m.entry((x, vent[0])).or_insert(0) += 1);
         } else {
             let mut r_x: Vec<u32> = (start_x..=end_x).collect();
             let mut r_y: Vec<u32> = (start_y..=end_y).collect();
@@ -91,6 +91,20 @@ mod tests {
             )),
             5
         );
-        assert_eq!(part2(&generator("")), 0);
+        assert_eq!(
+            part2(&generator(
+                "0,9 -> 5,9
+8,0 -> 0,8
+9,4 -> 3,4
+2,2 -> 2,1
+7,0 -> 7,4
+6,4 -> 2,0
+0,9 -> 2,9
+3,4 -> 1,4
+0,0 -> 8,8
+5,5 -> 8,2"
+            )),
+            12
+        );
     }
 }
